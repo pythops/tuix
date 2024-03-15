@@ -1,0 +1,15 @@
+[package]
+name = "tuix"
+version = "0.1.0"
+authors = ["pythops <contact@pythops.com>"]
+license = "GPL-3.0"
+edition = "2021"
+description = "TUI for managing screens"
+readme = "Readme.md"
+homepage = "https://github.com/pythops/tuix"
+repository = "https://github.com/pythops/tuix"
+
+[dependencies]
+crossterm = "0.27"
+ratatui = "0.26"
+x11rb = { version = "0.13", features = ["randr"] }
