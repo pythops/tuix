@@ -11,8 +11,8 @@ use ratatui::{
 use crate::app::App;
 
 pub fn render(app: &mut App, frame: &mut Frame) {
-    if !app.monitors.is_empty() {
-        let nb_blocks = app.monitors.len() * 2 + 1;
+    if !app.screens.is_empty() {
+        let nb_blocks = app.screens.len() * 2 + 1;
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -42,82 +42,60 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             .flat_map(|rect| rect.iter().cloned().collect::<Vec<Rect>>())
             .collect();
 
-        let primary_monitor = app.monitors.iter().find(|monitor| monitor.primary);
-
-        for monitor in app.monitors.iter() {
+        for screen in app.screens.iter() {
             let text = vec![
-                Line::from(monitor.name.clone()),
-                Line::from(format!("{}x{}", monitor.width, monitor.height)),
+                Line::from(screen.name.clone()),
+                Line::from(format!("{}x{}", screen.resolution.0, screen.resolution.1)),
             ];
 
             let paragraph = Paragraph::new(text)
                 .block(
                     Block::new()
                         .borders(Borders::ALL)
-                        .border_style({
-                            if let Some(selected_monitor) = &app.selected_monitor {
-                                if selected_monitor == &monitor.name {
-                                    Style::default().green()
-                                } else {
-                                    Style::default()
-                                }
-                            } else {
-                                Style::default()
-                            }
-                        })
-                        .border_type({
-                            if let Some(selected_monitor) = &app.selected_monitor {
-                                if selected_monitor == &monitor.name {
-                                    BorderType::Thick
-                                } else {
-                                    BorderType::default()
-                                }
-                            } else {
-                                BorderType::default()
-                            }
-                        }),
+                        .border_style(Style::default())
+                        .border_type(BorderType::default()),
                 )
                 .style(Style::new().white())
                 .centered()
                 .wrap(Wrap { trim: true });
 
-            if monitor.primary {
+            if screen.is_primary {
                 let paragraph = paragraph.style(Style::default().blue());
                 frame.render_widget(paragraph, chunks[chunks.len() / 2]);
             } else {
-                let (monitor_x, monitor_y) = {
-                    if let Some(coordinates) = &monitor.new_coordinates {
-                        (coordinates.x, coordinates.y)
+                let (screen_x, screen_y) = {
+                    if let Some(position) = &screen.new_position {
+                        (position.0, position.1)
                     } else {
-                        (monitor.crtc_info.x, monitor.crtc_info.y)
+                        (screen.position.0, screen.position.1)
                     }
                 };
 
                 let (primary_x, primary_y) = {
-                    let primary = primary_monitor.unwrap();
-                    if let Some(coordinates) = &primary.new_coordinates {
-                        (coordinates.x, coordinates.y)
+                    let primary = app.screens.iter().find(|screen| screen.is_primary).unwrap();
+                    if let Some(postion) = &primary.new_position {
+                        (postion.0, postion.1)
                     } else {
-                        (primary.crtc_info.x, primary.crtc_info.y)
+                        (primary.position.0, primary.position.1)
                     }
                 };
 
-                if monitor_x > primary_x {
+                if screen_x > primary_x {
                     let position = chunks.len() / 2 + 1;
                     frame.render_widget(paragraph.clone(), chunks[position]);
                 }
 
-                if monitor_x < primary_x {
+                if screen_x < primary_x {
                     let position = chunks.len() / 2 - 1;
                     frame.render_widget(paragraph.clone(), chunks[position]);
                 }
 
-                if monitor_y < primary_y {
+                if screen_y < primary_y {
                     let position = chunks.len() / 2 - nb_blocks;
                     frame.render_widget(paragraph.clone(), chunks[position]);
                 }
 
-                if monitor_y > primary_y {
+                if screen_y > primary_y {
                     let position = chunks.len() / 2 + nb_blocks;
                     frame.render_widget(paragraph.clone(), chunks[position]);
                 }
@@ -127,5 +105,10 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
     if app.help.show_help {
         app.help.render(frame);
+    }
+
+    // Notifications
+    for (index, notification) in app.notifications.iter().enumerate() {
+        notification.render(index, frame);
     }
 }
