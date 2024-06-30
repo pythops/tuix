@@ -36,10 +36,6 @@ cargo run
 
 `?`: Show help popup
 
-## 🐞 Known issues
-
-- Switching the position of an external monitor could result in unused resolution.
-
 ## 📝 Todo
 
 - [ ] Enable/Disable monitors.
