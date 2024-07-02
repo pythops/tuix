@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{cmp::Ordering, rc::Rc};
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -10,9 +10,11 @@ use ratatui::{
 
 use crate::app::App;
 
+const SCREEN_NUMBER: usize = 3;
+
 pub fn render(app: &mut App, frame: &mut Frame) {
     if !app.screens.is_empty() {
-        let nb_blocks = app.screens.len() * 2 + 1;
+        let nb_blocks = SCREEN_NUMBER;
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -80,24 +82,26 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                     }
                 };
 
-                if screen_x > primary_x {
-                    let position = chunks.len() / 2 + 1;
-                    frame.render_widget(paragraph.clone(), chunks[position]);
-                }
+                match screen_x.cmp(&primary_x) {
+                    Ordering::Greater => {
+                        let position = chunks.len() / 2 + 1;
+                        frame.render_widget(paragraph.clone(), chunks[position]);
+                    }
+                    Ordering::Less => {
+                        let position = chunks.len() / 2 - 1;
+                        frame.render_widget(paragraph.clone(), chunks[position]);
+                    }
+                    Ordering::Equal => {
+                        if screen_y < primary_y {
+                            let position = chunks.len() / 2 - nb_blocks;
+                            frame.render_widget(paragraph.clone(), chunks[position]);
+                        }
 
-                if screen_x < primary_x {
-                    let position = chunks.len() / 2 - 1;
-                    frame.render_widget(paragraph.clone(), chunks[position]);
-                }
-
-                if screen_y < primary_y {
-                    let position = chunks.len() / 2 - nb_blocks;
-                    frame.render_widget(paragraph.clone(), chunks[position]);
-                }
-
-                if screen_y > primary_y {
-                    let position = chunks.len() / 2 + nb_blocks;
-                    frame.render_widget(paragraph.clone(), chunks[position]);
+                        if screen_y > primary_y {
+                            let position = chunks.len() / 2 + nb_blocks;
+                            frame.render_widget(paragraph.clone(), chunks[position]);
+                        }
+                    }
                 }
             }
         }

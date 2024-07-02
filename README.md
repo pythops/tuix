@@ -6,6 +6,9 @@
   <img src="https://github.com/pythops/tuix/assets/57548585/cc822af3-a854-4834-aaf9-834bfc05f7ed"/>
 </div>
 
+> [!NOTE]
+> Only two monitors (one primary and one secondary) are supported at this point.
+
 ## 💡Prerequisites
 
 You need to install [xrandr](https://command-not-found.com/xrandr)
